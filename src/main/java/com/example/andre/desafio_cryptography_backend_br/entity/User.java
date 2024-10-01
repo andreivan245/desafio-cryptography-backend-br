@@ -28,6 +28,12 @@ public class User {
         this.value = value;
     }
 
+    public User(String userDocument, String creditCardToken, Long value) {
+        this.userDocument = userDocument;
+        this.creditCardToken = creditCardToken;
+        this.value = value;
+    }
+
     public Long getID() {
         return ID;
     }
