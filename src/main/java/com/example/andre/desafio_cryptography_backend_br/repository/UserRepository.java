@@ -4,5 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CryptographyRepository extends JpaRepository<,ID> {
+public interface UserRepository extends JpaRepository<User,ID> {
 }
