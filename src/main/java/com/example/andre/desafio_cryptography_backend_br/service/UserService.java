@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -22,8 +22,9 @@ public class UserService {
         return userRepository.save(encryptUser(userDTO));
     }
 
-    public Optional<User> getUser(Long id){
-        return userRepository.findById(id);
+    public User getUser(Long id){
+        return userRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("User not found: " + id));
     }
 
     public User updateUser(Long id, UserDTO userDTO) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -44,13 +45,28 @@ public class UserService {
 
     public User encryptUser(UserDTO userDTO) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         MessageDigest algorithm = MessageDigest.getInstance("SHA-512");
+
         byte[] userDocumentDigest = algorithm.digest(userDTO.getUserDocument().getBytes(StandardCharsets.UTF_8));
         byte[] creditCardTokenDigest = algorithm.digest(userDTO.getCreditCardToken().getBytes(StandardCharsets.UTF_8));
 
-        String userDocument = new String(userDocumentDigest,StandardCharsets.UTF_8);
-        String creditCardToken = new String(creditCardTokenDigest,StandardCharsets.UTF_8);
 
-        return new User(userDocument,creditCardToken,userDTO.getValue());
+        BigInteger userDocumentIntoSignalRepresentation = new BigInteger(1, userDocumentDigest);
+        BigInteger creditCardTokenIntoSignalRepresentation = new BigInteger(1, creditCardTokenDigest);
+
+
+        String userDocumentHashText = userDocumentIntoSignalRepresentation.toString(16);
+        String creditCardTokentHashText = creditCardTokenIntoSignalRepresentation.toString(16);
+
+        while (userDocumentHashText.length() < 32 || creditCardTokentHashText.length() < 32) {
+            if(userDocumentHashText.length() < 32)
+                userDocumentHashText = "0" + userDocumentHashText;
+
+            if(creditCardTokentHashText.length() < 32)
+                creditCardTokentHashText = "0" + creditCardTokentHashText;
+        }
+
+
+        return new User(userDocumentHashText,creditCardTokentHashText,userDTO.getValue());
     }
 
 }

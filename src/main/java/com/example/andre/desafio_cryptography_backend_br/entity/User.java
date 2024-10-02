@@ -1,16 +1,14 @@
 package com.example.andre.desafio_cryptography_backend_br.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
+@Table(name="user")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ID;
+    private Long id;
 
     private String userDocument;
 
@@ -21,8 +19,8 @@ public class User {
     public User() {
     }
 
-    public User(Long ID, String userDocument, String creditCardToken, Long value) {
-        this.ID = ID;
+    public User(Long id, String userDocument, String creditCardToken, Long value) {
+        this.id = id;
         this.userDocument = userDocument;
         this.creditCardToken = creditCardToken;
         this.value = value;
@@ -35,11 +33,11 @@ public class User {
     }
 
     public Long getID() {
-        return ID;
+        return id;
     }
 
-    public void setID(Long ID) {
-        this.ID = ID;
+    public void setID(Long id) {
+        this.id = id;
     }
 
     public String getUserDocument() {
