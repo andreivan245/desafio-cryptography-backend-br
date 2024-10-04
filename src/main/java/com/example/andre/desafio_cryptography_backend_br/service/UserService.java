@@ -2,6 +2,7 @@ package com.example.andre.desafio_cryptography_backend_br.service;
 
 import com.example.andre.desafio_cryptography_backend_br.dto.UserDTO;
 import com.example.andre.desafio_cryptography_backend_br.entity.User;
+import com.example.andre.desafio_cryptography_backend_br.excepetion.UserHasNullRequiredAttributeException;
 import com.example.andre.desafio_cryptography_backend_br.excepetion.UserIdNotFoundException;
 import com.example.andre.desafio_cryptography_backend_br.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,19 @@ import java.security.NoSuchAlgorithmException;
 @Service
 public class UserService {
 
+    private static final int NUMBERBITS = 32;
+    private static final int HEXVALUE = 16;
+    private static final int SIGNUM = 1;
+    private static final String ALGORITHM = "SHA-512";
+
+
     @Autowired
     private UserRepository userRepository;
 
     public User createUser(UserDTO userDTO)  {
+        if(userDTO.getUserDocument() == null || userDTO.getCreditCardToken() == null)
+            throw new UserHasNullRequiredAttributeException("UserDocument or CreditCardToken cannot be null");
+
         return userRepository.save(encryptUser(userDTO));
     }
 
@@ -31,6 +41,9 @@ public class UserService {
     public User updateUser(Long id, UserDTO userDTO)  {
         User existingUser = userRepository.findById(id).orElseThrow(
                 () -> new UserIdNotFoundException("User id not found: " + id));
+
+        if(userDTO.getUserDocument() == null || userDTO.getCreditCardToken() == null)
+            throw new UserHasNullRequiredAttributeException("UserDocument or CreditCardToken cannot be null");
 
         User encryptedUser = encryptUser(userDTO);
 
@@ -45,26 +58,26 @@ public class UserService {
 
     public User encryptUser(UserDTO userDTO) {
         try {
-            MessageDigest algorithm = MessageDigest.getInstance("SHA-512");
+            MessageDigest algorithm = MessageDigest.getInstance(ALGORITHM);
 
             byte[] userDocumentDigest = algorithm.digest(userDTO.getUserDocument().getBytes(StandardCharsets.UTF_8));
             byte[] creditCardTokenDigest = algorithm.digest(userDTO.getCreditCardToken().getBytes(StandardCharsets.UTF_8));
 
 
-            BigInteger userDocumentIntoSignalRepresentation = new BigInteger(1, userDocumentDigest);
-            BigInteger creditCardTokenIntoSignalRepresentation = new BigInteger(1, creditCardTokenDigest);
+            BigInteger userDocumentIntoSignalRepresentation = new BigInteger(SIGNUM, userDocumentDigest);
+            BigInteger creditCardTokenIntoSignalRepresentation = new BigInteger(SIGNUM, creditCardTokenDigest);
 
 
-            StringBuilder userDocumentHashText = new StringBuilder(userDocumentIntoSignalRepresentation.toString(16));
-            StringBuilder creditCardTokenHashText = new StringBuilder(creditCardTokenIntoSignalRepresentation.toString(16));
+            StringBuilder userDocumentHashText = new StringBuilder(userDocumentIntoSignalRepresentation.toString(HEXVALUE));
+            StringBuilder creditCardTokenHashText = new StringBuilder(creditCardTokenIntoSignalRepresentation.toString(HEXVALUE));
 
-            while (userDocumentHashText.length() < 32 || creditCardTokenHashText.length() < 32) {
+            while (userDocumentHashText.length() < NUMBERBITS || creditCardTokenHashText.length() < NUMBERBITS) {
 
-                if (userDocumentHashText.length() < 32) {
+                if (userDocumentHashText.length() < NUMBERBITS) {
                     userDocumentHashText.insert(0, "0");
                 }
 
-                if (creditCardTokenHashText.length() < 32) {
+                if (creditCardTokenHashText.length() < NUMBERBITS) {
                     creditCardTokenHashText.insert(0, "0");
                 }
             }

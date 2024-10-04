@@ -1,5 +1,6 @@
 package com.example.andre.desafio_cryptography_backend_br.excepetion.handler;
 
+import com.example.andre.desafio_cryptography_backend_br.excepetion.UserHasNullRequiredAttributeException;
 import com.example.andre.desafio_cryptography_backend_br.excepetion.UserIdNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -23,5 +24,18 @@ public class RestExceptionHandler {
         error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(UserHasNullRequiredAttributeException.class)
+    ResponseEntity<ErrorMessage> userHasNullRequiredAttributeException(UserHasNullRequiredAttributeException exception, HttpServletRequest request){
+        ErrorMessage error = new ErrorMessage();
+
+        error.setTimestamp(Instant.now());
+        error.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
+        error.setError("Mandatory attribute is null");
+        error.setMessage(exception.getMessage());
+        error.setPath(request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(error);
     }
 }
